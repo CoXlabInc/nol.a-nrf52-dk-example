@@ -26,7 +26,7 @@ SX1276Wiring::SX1276Wiring(
 }
 
 bool SX1276Wiring::usingPaBoost(uint32_t channel) {
-#ifdef USE_PABOOST
+#if (USE_PABOOST == 1)
   if (channel > 525000000) {
     return true;
   } else {
