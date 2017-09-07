@@ -4,17 +4,23 @@ Timer tPrint;
 
 static void printTask(void *) {
   System.ledToggle(0);
-  printf("[%lu usec] Hi!\n", micros());
+  Serial.printf("[%lu usec] Hi!\n", micros());
+  Serial.printf("* Random number:%lu\n", random());
 }
 
-static void keyboard(SerialPort&) {
+static void keyboard(SerialPort &p) {
   System.ledToggle(0);
-  printf("[%lu usec] Keyboard input\n", micros());
+  Serial.printf("[%lu usec] Keyboard input:", micros());
+  while (p.available() > 0) {
+    char c = p.read();
+    Serial.print(c);
+  }
+  Serial.println();
 }
 
 static void eventButtonPressed(uint8_t n) {
   System.ledToggle(n);
-  printf("[%lu usec] User button [%u] pressed\n", micros(), n);
+  Serial.printf("[%lu usec] User button [%u] pressed\n", micros(), n);
 }
 
 static void eventButton1Pressed() {
@@ -36,7 +42,7 @@ static void eventButton4Pressed() {
 void setup() {
   System.ledOn(0);
   Serial.begin(115200);
-  printf("\n*** [nRF52-DK] Basic Functions ***\n");
+  Serial.printf("\n*** [nRF52-DK] Basic Functions ***\n");
 
   tPrint.onFired(printTask, NULL);
   tPrint.startPeriodicMicros(1000000);
