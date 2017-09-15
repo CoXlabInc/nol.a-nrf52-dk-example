@@ -45,7 +45,7 @@ void setup() {
   Serial.printf("\n*** [nRF52-DK] Basic Functions ***\n");
 
   tPrint.onFired(printTask, NULL);
-  tPrint.startPeriodicMicros(1000000);
+  tPrint.startPeriodic(1000);
 
   Serial.listen();
   Serial.onReceive(keyboard);
