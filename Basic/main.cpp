@@ -47,7 +47,7 @@ void setup() {
   tPrint.onFired(printTask, NULL);
   tPrint.startPeriodic(1000);
 
-  Serial.listen();
+  // Serial.listen();
   Serial.onReceive(keyboard);
 
   System.onButtonPressed(0, eventButton1Pressed);
