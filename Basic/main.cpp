@@ -6,6 +6,7 @@ static void printTask(void *) {
   System.ledToggle(0);
   Serial.printf("[%lu usec] Hi!\n", micros());
   Serial.printf("* Random number:%lu\n", random());
+  Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 4095, 0, 3300));
 }
 
 static void keyboard(SerialPort &p) {
@@ -54,4 +55,6 @@ void setup() {
   System.onButtonPressed(1, eventButton2Pressed);
   System.onButtonPressed(2, eventButton3Pressed);
   System.onButtonPressed(3, eventButton4Pressed);
+
+  pinMode(3, INPUT);
 }
