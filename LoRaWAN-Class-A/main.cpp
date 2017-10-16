@@ -1,5 +1,5 @@
 #include <cox.h>
-#include <LoRaMacKR920.hpp>
+#include <LoRaMacKR920SKT.hpp>
 #include "SX1276Wiring.hpp"
 
 SX1276Wiring SX1276 = SX1276Wiring(
@@ -14,7 +14,7 @@ SX1276Wiring SX1276 = SX1276Wiring(
   19  //DIO4
 );
 
-LoRaMacKR920 LoRaWAN = LoRaMacKR920(SX1276);
+LoRaMacKR920SKT LoRaWAN = LoRaMacKR920SKT(SX1276);
 Timer timerSend;
 
 #define OVER_THE_AIR_ACTIVATION 1
