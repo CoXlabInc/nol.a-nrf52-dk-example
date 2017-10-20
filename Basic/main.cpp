@@ -6,7 +6,8 @@ static void printTask(void *) {
   System.ledToggle(0);
   Serial.printf("[%lu usec] Hi!\n", micros());
   Serial.printf("* Random number:%lu\n", random());
-  Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 4095, 0, 3300));
+  Serial.printf("* System voltage: %ld mV\n", System.getSupplyVoltage());
+  Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 0x0FFF, 0, 3600));
 }
 
 static void keyboard(SerialPort &p) {
