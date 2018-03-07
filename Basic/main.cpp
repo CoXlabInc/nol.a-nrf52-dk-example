@@ -1,6 +1,9 @@
 #include <cox.h>
 
 Timer tPrint;
+Timer tPrint2;
+
+static const char *weekday[] = { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
 
 static void printTask(void *) {
   System.ledToggle(0);
@@ -8,6 +11,28 @@ static void printTask(void *) {
   Serial.printf("* Random number:%lu\n", random());
   Serial.printf("* System voltage: %ld mV\n", System.getSupplyVoltage());
   Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 0x0FFF, 0, 3600));
+
+  struct timeval t1;
+  gettimeofday(&t1, NULL);
+  Serial.printf("* gettimeofday(): %lu.%06lu\n", t1.tv_sec, t1.tv_usec);
+
+  struct tm t2;
+  System.getDateTime(t2);
+  Serial.printf(
+    "* Now: %u-%u-%u %s %02u:%02u:%02u\n",
+    t2.tm_year + 1900,
+    t2.tm_mon + 1,
+    t2.tm_mday,
+    weekday[t2.tm_wday],
+    t2.tm_hour,
+    t2.tm_min,
+    t2.tm_sec
+  );
+}
+
+static void printTask2(void *) {
+  Serial.printf("[%lu usec] Hi! 5-seconds periodic task\n", micros());
+  System.ledToggle(1);
 }
 
 static void keyboard(SerialPort &p) {
@@ -41,6 +66,21 @@ static void eventButton4Pressed() {
   eventButtonPressed(3);
 }
 
+static void eventDateTimeAlarm() {
+  struct tm t;
+  System.getDateTime(t);
+  printf(
+    "* Alarm! Now: %u-%u-%u %s %02u:%02u:%02u\n",
+    t.tm_year + 1900,
+    t.tm_mon + 1,
+    t.tm_mday,
+    weekday[t.tm_wday],
+    t.tm_hour,
+    t.tm_min,
+    t.tm_sec
+  );
+}
+
 void setup() {
   System.ledOn(0);
   Serial.begin(115200);
@@ -48,6 +88,9 @@ void setup() {
 
   tPrint.onFired(printTask, NULL);
   tPrint.startPeriodic(1000);
+
+  tPrint2.onFired(printTask2, NULL);
+  tPrint2.startPeriodic(5000);
 
   // Serial.listen();
   Serial.onReceive(keyboard);
@@ -58,4 +101,17 @@ void setup() {
   System.onButtonPressed(3, eventButton4Pressed);
 
   pinMode(3, INPUT);
+
+  struct tm t;
+  t.tm_year = 2018 - 1900;  // 2018
+  t.tm_mon = 3 - 1;         // March
+  t.tm_mday = 7;
+  t.tm_hour = 0;
+  t.tm_min = 0;
+  t.tm_sec = 0;
+
+  System.setDateTime(t);
+
+  System.onDateTimeAlarm(eventDateTimeAlarm);
+  System.setTimeAlarm(0, 1); // To alarm at 00:01:00.000000
 }

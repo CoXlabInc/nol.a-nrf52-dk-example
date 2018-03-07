@@ -20,9 +20,9 @@ Timer timerSend;
 #define OVER_THE_AIR_ACTIVATION 1
 
 #if (OVER_THE_AIR_ACTIVATION == 1)
-static const uint8_t devEui[] = "\x14\x0C\x5B\xFF\xFF\x00\x05\xA7";
-static const uint8_t appEui[] = "\x01\x00\x00\x00\x00\x00\x00\x00";
-static const uint8_t appKey[] = "\x0b\xf2\x80\x34\xed\xcb\x14\xe0\x9e\x1f\x94\xea\x73\xe8\xef\x0e";
+static const uint8_t devEui[] = "\x00\x11\x22\x33\x44\x55\x66\x77";
+static const uint8_t appEui[] = "\x00\x00\x00\x00\x00\x00\x00\x00";
+static const uint8_t appKey[] = "\xf9\x2b\x61\x4f\x43\x20\x1a\x97\xc7\x2a\x12\x7b\x96\x7d\x83\x3c";
 #else
 
 static const uint8_t NwkSKey[] = "\xa4\x88\x55\xad\xe9\xf8\xf4\x6f\xa0\x94\xb1\x98\x36\xc3\xc0\x86";
@@ -39,7 +39,7 @@ static void taskPeriodicSend(void *) {
   }
 
   f->port = 1;
-  f->type = LoRaMacFrame::UNCONFIRMED;
+  f->type = LoRaMacFrame::CONFIRMED;
   strcpy((char *) f->buf, "Test");
   f->len = strlen((char *) f->buf);
 
@@ -175,7 +175,6 @@ static void eventLoRaWANLinkADRReqReceived(LoRaMac &l, const uint8_t *payload) {
 
 //! [eventLoRaWANLinkADRAnsSent]
 static void printChannelInformation(LoRaMac &lw) {
-  //! [getChannel]
   for (uint8_t i = 0; i < lw.MaxNumChannels; i++) {
     const LoRaMac::ChannelParams_t *p = lw.getChannel(i);
     if (p) {
@@ -184,15 +183,18 @@ static void printChannelInformation(LoRaMac &lw) {
       printf(" - [%u] disabled\n", i);
     }
   }
-  //! [getChannel]
 
-  //! [getDatarate]
-  const LoRaMac::DatarateParams_t *dr = lw.getDatarate(lw.getDefDatarate());
-  printf(" - Default DR%u:", lw.getDefDatarate());
+  const LoRaMac::DatarateParams_t *dr = lw.getDatarate(lw.getCurrentDatarateIndex());
+  printf(" - Default DR%u:", lw.getCurrentDatarateIndex());
   if (dr->mod == Radio::MOD_LORA) {
-    printf("LoRa SF%u ", dr->param.LoRa.sf);
-    const char *strBW[] = { "Unknown", "125kHz", "250kHz", "500kHz", "Unexpected value" };
-    printf("LoRa, SF%u BW:%s", dr->param.LoRa.sf, strBW[min(dr->param.LoRa.bw, 4)]);
+    const char *strBW[] = {
+      "Unknown", "125kHz", "250kHz", "500kHz", "Unexpected value"
+    };
+    printf(
+      "LoRa(SF%u BW:%s)\n",
+      dr->param.LoRa.sf,
+      strBW[min(dr->param.LoRa.bw, 4)]
+    );
   } else if (dr->mod == Radio::MOD_FSK) {
     printf("FSK\n");
   } else {
@@ -200,7 +202,20 @@ static void printChannelInformation(LoRaMac &lw) {
   }
   //! [getDatarate]
 
-  printf(" - # of repetitions of unconfirmed uplink frames: %u\n", lw.getNumRepetitions());
+  //! [getTxPower]
+  int8_t power = lw.getTxPower(lw.getCurrentTxPowerIndex());
+  printf(" - Default Tx: ");
+  if (power == -127) {
+    printf("unexpected value\n");
+  } else {
+    printf("%d dBm\n", power);
+  }
+  //! [getTxPower]
+
+  printf(
+    " - # of repetitions of unconfirmed uplink frames: %u\n",
+    lw.getNumRepetitions()
+  );
 }
 
 static void eventLoRaWANLinkADRAnsSent(LoRaMac &l, uint8_t status) {
