@@ -48,7 +48,7 @@ static void taskPeriodicSend(void *) {
   // f->modulation = Radio::MOD_LORA;
   // f->meta.LoRa.bw = Radio::BW_125kHz;
   // f->meta.LoRa.sf = Radio::SF7;
-  // f->power = 10;
+  // f->power = 1; /* Index 1 => MaxEIRP - 2 dBm */
   f->numTrials = 5;
 
   error_t err = LoRaWAN.send(f);
@@ -147,7 +147,21 @@ static void eventLoRaWANReceive(LoRaMac &, const LoRaMacFrame *frame) {
   for (uint8_t i = 0; i < frame->len; i++) {
     printf(" %02X", frame->buf[i]);
   }
-  printf("\n");
+  printf(" (%u byte)\n", frame->len);
+
+  if (
+    (frame->type == LoRaMacFrame::CONFIRMED || lw.framePending) &&
+    lw.getNumPendingSendFrames() == 0
+  ) {
+    // If there is no pending send frames, send an empty frame to ack or pull more frames.
+    LoRaMacFrame *emptyFrame = new LoRaMacFrame(0);
+    if (emptyFrame) {
+      error_t err = LoRaWAN.send(emptyFrame);
+      if (err != ERROR_SUCCESS) {
+        delete emptyFrame;
+      }
+    }
+  }
 }
 //! [How to use onReceive callback]
 
