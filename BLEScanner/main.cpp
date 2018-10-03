@@ -1,97 +1,105 @@
 #include <cox.h>
+#include <BLEDevice.hpp>
 
-Timer timerHello;
-Timer timerLEDOff;
-BLEMac *ble;
+#define SCAN_DURATION 10
 
-static void taskHello(void *) {
-  System.ledOn(0);
-  timerLEDOff.startOneShot(10);
-}
+BLEScan* pBLEScan = nullptr;
+bool isScanning = false;
 
-static void taskLEDOff(void *) {
-  System.ledOff(0);
+class MyAdvertisedDeviceListener: public BLEAdvertisedDeviceCallbacks {
+  void onResult(BLEAdvertisedDevice advertisedDevice) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    Serial.printf("[%lu.%06lu|SCANNED] %s\n", tv.tv_sec, tv.tv_usec, advertisedDevice.toString().c_str());
+  }
+};
+
+
+MyAdvertisedDeviceListener listener;
+
+
+static void eventScanDone(BLEScanResults results) {
+  isScanning = false;
+  Serial.printf("* Scanning done. %lu devices found.\n", results.getCount());
+  for (int i = 0; i < results.getCount(); i++) {
+    BLEAdvertisedDevice advertisedDevice = results.getDevice(i);
+    BLEAddress addr = advertisedDevice.getAddress();
+
+    Serial.printf("- [%u] %s", i, addr.toString().c_str());
+
+    if (advertisedDevice.haveName()) {
+      Serial.printf(", Name: %s", advertisedDevice.getName().c_str());
+    }
+
+    if (advertisedDevice.haveAppearance()) {
+      Serial.printf(", Appearance: 0x%04X", advertisedDevice.getAppearance());
+    }
+
+    if (advertisedDevice.haveManufacturerData()) {
+      Serial.print(", Manufacturer data:");
+      std::string manufacturerData = advertisedDevice.getManufacturerData();
+      for (uint8_t i = 0; i < manufacturerData.length(); i++) {
+        Serial.printf(" %02X", (uint8_t) manufacturerData.data()[i]);
+      }
+    }
+
+    if (advertisedDevice.haveServiceUUID()) {
+      BLEUUID serviceUUID = advertisedDevice.getServiceUUID();
+      Serial.printf(", service UUID: %s", serviceUUID.toString().c_str());
+    }
+
+    if (advertisedDevice.haveTXPower()) {
+      int8_t txPower = advertisedDevice.getTXPower();
+      Serial.printf(", TX power:%d dBm", txPower);
+    }
+
+    if (advertisedDevice.haveRSSI()) {
+      int rssi = advertisedDevice.getRSSI();
+      Serial.printf(", RSSI: %d dB", rssi);
+    }
+
+    Serial.println();
+  }
 }
 
 static void eventButtonPressed() {
-  if (ble->isScanning()) {
+  if (isScanning) {
     Serial.println("* Turn off scanner!");
-    ble->endScan();
-    timerHello.stop();
+    pBLEScan->stop();
+    isScanning = false;
   } else {
-    error_t err = ble->beginScan();
-    if (err == ERROR_SUCCESS) {
-      Serial.println("* Turn on scanner!");
-      timerHello.startPeriodic(1000);
+    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
+    if (isScanning) {
+      printf("* Turn on scanner!\n");
     } else {
-      Serial.print("* Error during turning on scanner: ");
-      Serial.print(err);
+      printf("* Scan failed.\n");
     }
   }
-}
-
-static void eventBLEAdvScanned(
-  BLEMac::AdvPDU_t pduType,
-  const BLEAddress *addr,
-  const BLEAddress *directedAddr,
-  const uint8_t *data,
-  uint8_t len,
-  int8_t rssi) {
-  Serial.print("[SCANNED] PDU type:");
-  Serial.print((uint8_t) pduType);
-  Serial.print(", Source Address:");
-  if (addr->isPeer) {
-    Serial.print("(P)");
-  }
-  for (uint8_t i = 0; i < 6; i++) {
-    Serial.printf(" %02X", addr->octet[i]);
-  }
-  if (directedAddr) {
-    Serial.print(", Directed Address:");
-    if (directedAddr->isPeer) {
-      Serial.print("(P)");
-    }
-    for (uint8_t i = 0; i < 6; i++) {
-      Serial.printf(" %02X", directedAddr->octet[i]);
-    }
-  }
-  Serial.print(", Data:");
-  for (uint8_t i = 0; i < len; i++) {
-    Serial.printf(" %02X", data[i]);
-  }
-  Serial.print(", RSSI:");
-  Serial.print(rssi);
-  Serial.println(" dB");
 }
 
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println("*** [nRF52-DK] BLE Scanner ***");
-
-  timerHello.onFired(taskHello, NULL);
-  timerLEDOff.onFired(taskLEDOff, NULL);
+  printf("\n*** [nRF52-DK] BLE Scanner ***\n");
+  printf("* Reset: 0x%08lx\n", System.getResetReason());
+  if (System.getResetReason() & (1ul << 1)) {
+    const McuNRF51::StackDump *last = System.getLastStackDump();
+    printf("* Watchdog reset. Check the last stack dump:\n");
+    printf(" - R0: 0x%08lx, R1: 0x%08lx, R2: 0x%08lx, R3: 0x%08lx\n", last->r0, last->r1, last->r2, last->r3);
+    printf(" - R12: 0x%08lx, LR: 0x%08lx, PC: 0x%08lx, PSR: 0x%08lx\n", last->r12, last->lr, last->pc, last->psr);
+  }
 
   System.onButtonPressed(0, eventButtonPressed);
 
-  uint32_t ramReq;
-  ble = System.initSoftDevice(0, 1, &ramReq);
-  if (ble) {
-    Serial.print("* BLE stack initialized successfully. The minimum required RAM base is 0x");
-    Serial.print(ramReq, HEX);
-    Serial.println(".");
+  BLEDevice::init("");
+  pBLEScan = BLEDevice::getScan(); //create new scan
+  pBLEScan->setAdvertisedDeviceCallbacks(&listener, true);
+  pBLEScan->activeScan = true;
 
-    ble->onScanned(eventBLEAdvScanned);
-    ble->setScanWindow(10000);
-    ble->setScanInterval(10000);
-    error_t err = ble->beginScan();
-    Serial.print("* beginScan: "); Serial.println(err);
-    if (err == ERROR_SUCCESS) {
-      timerHello.startPeriodic(1000);
-    }
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
+  if (isScanning) {
+    printf("* Now scanning...\n");
   } else {
-    Serial.print("* BLE stack: RAM base must be adjusted to 0x");
-    Serial.print(ramReq, HEX);
-    Serial.println(".");
+    printf("* Scan failed.\n");
   }
 }
