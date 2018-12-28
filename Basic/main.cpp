@@ -4,6 +4,7 @@ Timer tPrint;
 Timer tPrint2;
 
 static const char *weekday[] = { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
+uint8_t countNoInit __attribute__((section(".noinit")));
 
 static void printTask(void *) {
   System.ledToggle(0);
@@ -11,6 +12,7 @@ static void printTask(void *) {
   Serial.printf("* Random number:%lu\n", random());
   Serial.printf("* System voltage: %ld mV\n", System.getSupplyVoltage());
   Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 0x0FFF, 0, 3600));
+  Serial.printf("* countNoInit:%lu\n", countNoInit++);
 
   struct timeval t1;
   gettimeofday(&t1, NULL);
@@ -63,7 +65,7 @@ static void eventButton3Pressed() {
 }
 
 static void eventButton4Pressed() {
-  eventButtonPressed(3);
+  reboot();
 }
 
 static void eventDateTimeAlarm() {
