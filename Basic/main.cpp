@@ -104,16 +104,6 @@ void setup() {
 
   pinMode(3, INPUT);
 
-  struct tm t;
-  t.tm_year = 2018 - 1900;  // 2018
-  t.tm_mon = 3 - 1;         // March
-  t.tm_mday = 7;
-  t.tm_hour = 0;
-  t.tm_min = 0;
-  t.tm_sec = 0;
-
-  System.setDateTime(t);
-
   System.onDateTimeAlarm(eventDateTimeAlarm);
   System.setTimeAlarm(0, 1); // To alarm at 00:01:00.000000
 }
