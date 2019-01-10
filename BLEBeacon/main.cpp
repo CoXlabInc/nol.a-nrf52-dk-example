@@ -44,8 +44,8 @@ void setup() {
   Serial.println("*** [nRF52-DK] BLE Beacon ***");
 
   System.ledOn(0);
-  // pinMode(D6, OUTPUT);
-  // digitalWrite(D6, HIGH);
+  pinMode(D6, OUTPUT);
+  digitalWrite(D6, HIGH);
   timerHello.onFired(taskHello, NULL);
   timerLEDOff.onFired(taskLEDOff, NULL);
 
