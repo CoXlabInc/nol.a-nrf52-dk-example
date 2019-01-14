@@ -8,15 +8,14 @@ uint8_t countNoInit __attribute__((section(".noinit")));
 
 static void printTask(void *) {
   System.ledToggle(0);
-  Serial.printf("[%lu usec] Hi!\n", micros());
+  struct timeval t;
+  gettimeofday(&t, nullptr);
+  Serial.printf("[%lu.%06lu] Hi!\n", t.tv_sec, t.tv_usec);
+  Serial.printf("* Cycle: 0x%08lx\n", System.getCycleCount());
   Serial.printf("* Random number:%lu\n", random());
   Serial.printf("* System voltage: %ld mV\n", System.getSupplyVoltage());
   Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 0x0FFF, 0, 3600));
   Serial.printf("* countNoInit:%lu\n", countNoInit++);
-
-  struct timeval t1;
-  gettimeofday(&t1, NULL);
-  Serial.printf("* gettimeofday(): %lu.%06lu\n", t1.tv_sec, t1.tv_usec);
 
   struct tm t2;
   System.getDateTime(t2);
