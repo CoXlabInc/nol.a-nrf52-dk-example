@@ -30,12 +30,11 @@ static const uint8_t AppSKey[] = "\x7a\x56\x2a\x75\xd7\xa3\xbd\x89\xa3\xde\x53\x
 static uint32_t DevAddr = 0x06e632e8;
 #endif //OVER_THE_AIR_ACTIVATION
 
-//! [How to send]
 static void taskPeriodicSend(void *) {
   LoRaMacFrame *f = new LoRaMacFrame(255);
   if (!f) {
     printf("* Out of memory\n");
-    return NULL;
+    return;
   }
 
   f->port = 1;
@@ -58,9 +57,7 @@ static void taskPeriodicSend(void *) {
     timerSend.startOneShot(10000);
   }
 }
-//! [How to send]
 
-//! [How to use onJoin callback for SKT]
 static void eventLoRaWANJoin(
   LoRaMac &,
   bool joined,
@@ -70,7 +67,8 @@ static void eventLoRaWANJoin(
   const uint8_t *joinedNwkSKey,
   const uint8_t *joinedAppSKey,
   uint32_t joinedDevAddr,
-  const RadioPacket &frame
+  const RadioPacket &frame,
+  uint32_t
 ) {
 #if (OVER_THE_AIR_ACTIVATION == 1)
   if (joined) {
@@ -87,9 +85,7 @@ static void eventLoRaWANJoin(
   }
 #endif
 }
-//! [How to use onJoin callback for SKT]
 
-//! [How to use onSendDone callback]
 static void eventLoRaWANSendDone(LoRaMac &, LoRaMacFrame *frame) {
   printf("* Send done(%d): [%p] destined for port[%u], Freq:%lu Hz, Power:%d dBm, # of Tx:%u, ", frame->result, frame, frame->port, frame->freq, frame->power, frame->numTrials);
   if (frame->modulation == Radio::MOD_LORA) {
@@ -119,10 +115,8 @@ static void eventLoRaWANSendDone(LoRaMac &, LoRaMacFrame *frame) {
 
   timerSend.startOneShot(10000);
 }
-//! [How to use onSendDone callback]
 
-//! [How to use onReceive callback]
-static void eventLoRaWANReceive(LoRaMac &, const LoRaMacFrame *frame) {
+static void eventLoRaWANReceive(LoRaMac &lw, const LoRaMacFrame *frame) {
   printf("* Received: destined for port[%u], Freq:%lu Hz, RSSI:%d dB", frame->port, frame->freq, frame->power);
   if (frame->modulation == Radio::MOD_LORA) {
     const char *strBW[] = { "Unknown", "125kHz", "250kHz", "500kHz", "Unexpected value" };
@@ -163,7 +157,6 @@ static void eventLoRaWANReceive(LoRaMac &, const LoRaMacFrame *frame) {
     }
   }
 }
-//! [How to use onReceive callback]
 
 //! [How to use onJoinRequested callback]
 static void eventLoRaWANJoinRequested(LoRaMac &, uint32_t frequencyHz, const LoRaMac::DatarateParams_t &dr) {

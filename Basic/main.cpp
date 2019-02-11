@@ -11,7 +11,7 @@ static void printTask(void *) {
   struct timeval t;
   gettimeofday(&t, nullptr);
   Serial.printf("[%lu.%06lu] Hi!\n", t.tv_sec, t.tv_usec);
-  Serial.printf("* Cycle: 0x%08lx\n", System.getCycleCount());
+  Serial.printf("* Systick: 0x%08lx\n", System.getSystickCount());
   Serial.printf("* Random number:%lu\n", random());
   Serial.printf("* System voltage: %ld mV\n", System.getSupplyVoltage());
   Serial.printf("* A0: %ld mV\n", map(analogRead(3), 0, 0x0FFF, 0, 3600));
