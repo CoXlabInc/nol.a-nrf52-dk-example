@@ -62,7 +62,6 @@ void setup() {
   oBeacon.setMajor(0x0102);
   oBeacon.setMinor(0x0304);
   BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
-  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
 
   oAdvertisementData.setFlags(0x04); // BR_EDR_NOT_SUPPORTED 0x04
 
@@ -74,6 +73,9 @@ void setup() {
   oAdvertisementData.addData(strServiceData);
 
   pAdvertising->setAdvertisementData(oAdvertisementData);
+
+  BLEAdvertisementData oScanResponseData = BLEAdvertisementData();
+  oScanResponseData.setName("CoXlab");
   pAdvertising->setScanResponseData(oScanResponseData);
 
   timerHello.startPeriodic(1000);

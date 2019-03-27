@@ -61,6 +61,8 @@ static void eventScanDone(BLEScanResults results) {
 
     Serial.println();
   }
+
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
 }
 
 static void eventButtonPressed() {
@@ -81,10 +83,9 @@ static void eventButtonPressed() {
 void setup() {
   Serial.begin(115200);
   printf("\n*** [nRF52-DK] BLE Scanner ***\n");
-  printf("* Reset: 0x%08lx\n", System.getResetReason());
-  if (System.getResetReason() & (1ul << 1)) {
+  printf("* Reset by 0x%08lx\n", System.getResetReason());
+  if (System.getResetReason() & (System.RESET_REASON_DOG | System.RESET_REASON_SREQ)) {
     const McuNRF51::StackDump *last = System.getLastStackDump();
-    printf("* Watchdog reset. Check the last stack dump:\n");
     printf(" - R0: 0x%08lx, R1: 0x%08lx, R2: 0x%08lx, R3: 0x%08lx\n", last->r0, last->r1, last->r2, last->r3);
     printf(" - R12: 0x%08lx, LR: 0x%08lx, PC: 0x%08lx, PSR: 0x%08lx\n", last->r12, last->lr, last->pc, last->psr);
   }
@@ -93,7 +94,7 @@ void setup() {
 
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan(); //create new scan
-  pBLEScan->setAdvertisedDeviceCallbacks(&listener, true);
+  pBLEScan->setAdvertisedDeviceCallbacks(&listener);
   pBLEScan->activeScan = true;
 
   isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
