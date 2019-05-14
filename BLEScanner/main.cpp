@@ -59,10 +59,14 @@ static void eventScanDone(BLEScanResults results) {
       Serial.printf(", RSSI: %d dB", rssi);
     }
 
-    Serial.println();
+    Serial.printf(", Raw [");
+    for (uint8_t i = 0; i < advertisedDevice.getPayloadLength(); i++) {
+      Serial.printf(" %02X", (uint8_t) advertisedDevice.getPayload()[i]);
+    }
+    Serial.printf(" ]\n");
   }
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
 }
 
 static void eventButtonPressed() {
@@ -71,7 +75,7 @@ static void eventButtonPressed() {
     pBLEScan->stop();
     isScanning = false;
   } else {
-    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
+    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
     if (isScanning) {
       printf("* Turn on scanner!\n");
     } else {
@@ -95,9 +99,9 @@ void setup() {
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(&listener);
-  pBLEScan->activeScan = true;
+  pBLEScan->setActiveScan(true);
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
   if (isScanning) {
     printf("* Now scanning...\n");
   } else {
