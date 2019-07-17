@@ -2,7 +2,6 @@
 #include <BLEDevice.hpp>
 
 #define SCAN_DURATION 10
-#define SCAN_COUNT 5
 
 BLEScan* pBLEScan = nullptr;
 bool isScanning = false;
@@ -67,7 +66,7 @@ static void eventScanDone(BLEScanResults results) {
     Serial.printf(" ]\n");
   }
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false);
 }
 
 static void eventButtonPressed() {
@@ -76,7 +75,7 @@ static void eventButtonPressed() {
     pBLEScan->stop();
     isScanning = false;
   } else {
-    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
+    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false);
     if (isScanning) {
       printf("* Turn on scanner!\n");
     } else {
@@ -102,7 +101,7 @@ void setup() {
   pBLEScan->setAdvertisedDeviceCallbacks(&listener);
   pBLEScan->setActiveScan(true);
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false);
   if (isScanning) {
     printf("* Now scanning...\n");
   } else {
