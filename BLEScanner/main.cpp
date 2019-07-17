@@ -2,6 +2,7 @@
 #include <BLEDevice.hpp>
 
 #define SCAN_DURATION 10
+#define SCAN_COUNT 5
 
 BLEScan* pBLEScan = nullptr;
 bool isScanning = false;
@@ -11,7 +12,7 @@ class MyAdvertisedDeviceListener: public BLEAdvertisedDeviceCallbacks {
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
-    Serial.printf("[%lu.%06lu|SCANNED] %s\n", tv.tv_sec, tv.tv_usec, advertisedDevice.toString().c_str());
+    Serial.printf("[%lu.%06lu|SCANNED] %s\n", (uint32_t) tv.tv_sec, tv.tv_usec, advertisedDevice.toString().c_str());
   }
 };
 
@@ -66,7 +67,7 @@ static void eventScanDone(BLEScanResults results) {
     Serial.printf(" ]\n");
   }
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
 }
 
 static void eventButtonPressed() {
@@ -75,7 +76,7 @@ static void eventButtonPressed() {
     pBLEScan->stop();
     isScanning = false;
   } else {
-    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
+    isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
     if (isScanning) {
       printf("* Turn on scanner!\n");
     } else {
@@ -101,7 +102,7 @@ void setup() {
   pBLEScan->setAdvertisedDeviceCallbacks(&listener);
   pBLEScan->setActiveScan(true);
 
-  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, 3);
+  isScanning = pBLEScan->start(SCAN_DURATION, eventScanDone, false, SCAN_COUNT);
   if (isScanning) {
     printf("* Now scanning...\n");
   } else {
