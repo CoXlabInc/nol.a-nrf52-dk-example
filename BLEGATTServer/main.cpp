@@ -39,6 +39,7 @@ void setup() {
   printf("- Characteristic added\n");
 
   BLEAdvertising *adv = server->getAdvertising();
+  adv->addServiceUUID(SERVICE_UUID);
   adv->setMinIntervalMicros(1000000);
   adv->start();
   printf("- Advertising started...\n");
