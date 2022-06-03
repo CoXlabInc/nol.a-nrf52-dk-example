@@ -89,7 +89,7 @@ void setup() {
   printf("\n*** [nRF52-DK] BLE Scanner ***\n");
   printf("* Reset by 0x%08lx\n", System.getResetReason());
   if (System.getResetReason() & (System.RESET_REASON_DOG | System.RESET_REASON_SREQ)) {
-    const McuNRF51::StackDump *last = System.getLastStackDump();
+    const McuARMCortexM::CoreRegisterDump *last = System.getLastCoreRegisterDump();
     printf(" - R0: 0x%08lx, R1: 0x%08lx, R2: 0x%08lx, R3: 0x%08lx\n", last->r0, last->r1, last->r2, last->r3);
     printf(" - R12: 0x%08lx, LR: 0x%08lx, PC: 0x%08lx, PSR: 0x%08lx\n", last->r12, last->lr, last->pc, last->psr);
   }
