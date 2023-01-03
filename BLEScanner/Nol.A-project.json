@@ -1,4 +1,4 @@
 {
- "board": "nordic-nrf52-dk",
- "options": "NOLA_RAM_START=0x20002210"
+    "board": "nordic-nrf52-dk",
+    "options": "NOLA_RAM_START=0x20002210"
 }
